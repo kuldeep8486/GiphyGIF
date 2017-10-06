@@ -1,0 +1,36 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!-- dialog animation -->
+    <style name="Animations" />
+
+    <style name="Animations.SmileWindow">
+        <item name="@android:windowEnterAnimation">@anim/dialog_anim</item>
+        <item name="@android:windowExitAnimation">@anim/dialog_anim_hide</item>
+    </style>
+
+    <!-- edittext style -->
+    <style name="TextAppearence.App.TextInputLayout" parent="@android:style/TextAppearance">
+        <item name="android:textColor">@color/colorBlue</item>
+        <item name="android:textSize">@dimen/hint_text_size</item>
+        <item name="colorAccent">@color/text_hint</item>
+        <item name="colorControlNormal">@color/text_hint</item>
+        <item name="colorControlActivated">@color/text_hint</item>
+    </style>
+
+    <style name="MyEditTextTheme">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColorHint">@color/white</item>
+        <item name="colorControlNormal">@color/white</item>
+        <item name="colorControlActivated">@color/white</item>
+        <item name="colorControlHighlight">@color/white</item>
+    </style>
+
+</resources>

@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">GiphyDemo</string>
+
+    <!-- font -->
+    <string name="font_regular">AvenirNextLTPro-Regular.otf</string>
+    <string name="font_medium">AvenirNextLTPro-Regular.otf</string>
+    <string name="font_semibold">AvenirNextLTPro-Demi.otf</string>
+    <string name="font_bold">AvenirNextLTPro-Demi.otf</string>
+    <string name="font_button">JustTellMeWhat.otf</string>
+
+    <!-- network -->
+    <string name="network_failed_title">Network error&#33;</string>
+    <string name="network_failed_message">No internet connection&#33;</string>
+
+    <string name="no_data">No data found!</string>
+
+    <string name="loading_progress_message">Loading...</string>
+    <string name="send_forgotpassword_progress_message">Sending...</string>
+
+</resources>
