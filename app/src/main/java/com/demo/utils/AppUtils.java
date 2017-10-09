@@ -3,6 +3,7 @@ package com.demo.utils;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,6 +11,7 @@ import android.content.pm.LabeledIntent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -21,6 +23,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -57,6 +60,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -1116,5 +1120,202 @@ public class AppUtils
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static HashMap<String, String> getEmailListFromDB(final Context context)
+	{
+		HashMap<String, String> hashmapEmail = new HashMap<>();
+
+		try
+		{
+			final String[] PROJECTIONEMAIL = new String[] {
+					ContactsContract.CommonDataKinds.Email.CONTACT_ID,
+					ContactsContract.Contacts.DISPLAY_NAME,
+					ContactsContract.CommonDataKinds.Email.DATA
+			};
+
+			ContentResolver cr = context.getContentResolver();
+			Cursor cursorEmail = cr.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, PROJECTIONEMAIL, null, null, null);
+			if (cursorEmail != null)
+			{
+				try
+				{
+					final int contactIdIndex = cursorEmail.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID);
+					final int emailIndex = cursorEmail.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA);
+					long contactId;
+					String address;
+					while (cursorEmail.moveToNext())
+					{
+						contactId = cursorEmail.getLong(contactIdIndex);
+						address = cursorEmail.getString(emailIndex);
+						hashmapEmail.put(String.valueOf(contactId), address);
+                            /*Log.v("CONTACTS DETAIL", contactId + " ** " + displayName + " ** " + address);*/
+					}
+				} finally {
+					cursorEmail.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return hashmapEmail;
+	}
+
+	public static HashMap<String, String> getBirthdateListFromDB(final Context context)
+	{
+		HashMap<String, String> hashmapBirthdate = new HashMap<>();
+
+		ArrayList<String> listBdays = new ArrayList<>();
+		try
+		{
+			final String[] selectionArgs = new String[] {
+					ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE
+			};
+
+			ContentResolver cr = context.getContentResolver();
+			String whereBirthdate = ContactsContract.Data.MIMETYPE + "= ? AND " + ContactsContract.CommonDataKinds.Event.TYPE + " = " + ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY;
+			Cursor cursorBirthdate = cr.query(ContactsContract.Data.CONTENT_URI, null, whereBirthdate, selectionArgs, null);
+			if (cursorBirthdate != null)
+			{
+				try
+				{
+					final int contactIdIndex = cursorBirthdate.getColumnIndex(ContactsContract.CommonDataKinds.Event.CONTACT_ID);
+					while (cursorBirthdate.moveToNext())
+					{
+						try {
+							int bDayColumn = cursorBirthdate.getColumnIndex(ContactsContract.CommonDataKinds.Event.START_DATE);
+							String birthdate = getValidAPIStringResponse(cursorBirthdate.getString(bDayColumn));
+
+							String dateToAddInList = "";
+							if(birthdate.length() > 0)
+							{
+								dateToAddInList = birthdate;
+							}
+
+							birthdate = getValidDateString(birthdate);
+
+							if(birthdate.length() > 0)
+							{
+								dateToAddInList = dateToAddInList + "   &&   " + birthdate;
+								listBdays.add(dateToAddInList);
+							}
+
+							long contactId = cursorBirthdate.getLong(contactIdIndex);
+							hashmapBirthdate.put(String.valueOf(contactId), birthdate);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						/*Log.v("CONTACTS DETAIL", contactId + " ** " + birthdate);*/
+					}
+				} finally {
+					cursorBirthdate.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return hashmapBirthdate;
+	}
+
+	public static String getValidPhoneNumber(final String phoneNumber)
+	{
+		String validNumber = "";
+		try {
+			validNumber = getValidAPIStringResponse(phoneNumber).replaceAll("\\s+", "").replace("-", "").replace("(", "").replace(")", "")
+					.replace(".", "").replace(",", "").replace("*", "").replace("#", "")
+					.replace(";", "");
+		}
+		catch (Exception e)
+		{
+			validNumber = phoneNumber;
+		}
+		return validNumber;
+	}
+
+	public static String getValidDateString(String birthdate)
+	{
+		try {
+			if(birthdate.contains("-"))
+			{
+				// lenovo date format :   2010-07-20T08:00:00.000Z
+				if(birthdate.startsWith("--"))
+				{
+					birthdate = "1990" + birthdate.substring(1, birthdate.length());
+				}
+
+				String[] arrdate = birthdate.split("-");
+				String yearStr = arrdate[0];
+				String monthStr = arrdate[1];
+				String dateStr = arrdate[2];
+
+				if(dateStr.contains("T"))
+				{
+					try {
+						String[] arrT = dateStr.split("T");
+						dateStr = arrT[0];
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
+				birthdate = dateStr + "/" + monthStr + "/" + yearStr;
+
+				if(birthdate.length() != 10 || birthdate.contains("T") || birthdate.contains("-") || birthdate.startsWith("00"))
+				{
+					birthdate = "";
+				}
+			}
+			else
+			{
+				birthdate = "";
+			}
+		} catch (Exception e) {
+			birthdate = "";
+			e.printStackTrace();
+		}
+
+		return birthdate;
+	}
+
+	public static long getDateAsUpcoming(String birthdate)
+	{
+		long millis = 0;
+
+		try {
+			Date dateObjNow = new Date(Calendar.getInstance().getTimeInMillis());
+			SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+			String[] strarrNow = dateFormat.format(dateObjNow).split("/");
+			int dateNow = Integer.parseInt(strarrNow[0]);
+			int monthNow = Integer.parseInt(strarrNow[1]);
+			int yearNow = Integer.parseInt(strarrNow[2]);
+
+			String[] strarr = birthdate.split("/");
+			int date = Integer.parseInt(strarr[0]);
+			int month = Integer.parseInt(strarr[1]);
+			int year = yearNow;
+
+			if(monthNow == month)
+			{
+				if(dateNow > date)
+				{
+					year = yearNow + 1;
+				}
+			}
+			else if(monthNow > month)
+			{
+				year = yearNow + 1;
+			}
+
+			String newdatestr = String.valueOf(date) + "/" + String.valueOf(month) + "/" + String.valueOf(year);
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+			Date dateFinal = simpleDateFormat.parse(newdatestr);
+			millis = dateFinal.getTime();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return millis;
 	}
 }
