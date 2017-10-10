@@ -43,6 +43,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.demo.db.ContactLocalPojo;
 import com.demo.giphydemo.MainActivity;
 import com.demo.giphydemo.R;
 
@@ -437,6 +438,26 @@ public class AppUtils
 			});
 		}
 		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	public static ArrayList<ContactLocalPojo> sortContactList(ArrayList<ContactLocalPojo> result)
+	{
+		try
+		{
+			Collections.sort(result, new Comparator<ContactLocalPojo>()
+			{
+				@Override
+				public int compare(ContactLocalPojo o1, ContactLocalPojo o2)
+				{
+					return (o1.getName().toLowerCase(Locale.getDefault()).compareTo(o2.getName().toLowerCase(Locale.getDefault())));
+				}
+			});
+		}
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}

@@ -29,6 +29,10 @@
             android:name="com.demo.giphydemo.ImageSliderActivity"
             android:screenOrientation="portrait" />
 
+        <activity
+            android:name="com.demo.giphydemo.ContactsActivity"
+            android:screenOrientation="portrait" />
+
 		<receiver
             android:name="com.demo.classes.ConnectivityReceiver"
             android:enabled="true">

@@ -10,7 +10,7 @@ import android.provider.ContactsContract;
 import android.util.Log;
 
 import com.android.mit.mitsutils.MitsUtils;
-import com.demo.giphydemo.MainActivity;
+import com.demo.giphydemo.ContactsActivity;
 import com.demo.utils.AppUtils;
 import com.demo.utils.SessionManager;
 
@@ -18,9 +18,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class ContactsInstantSyncUtils
 {
@@ -59,6 +57,7 @@ public class ContactsInstantSyncUtils
             {
                 private boolean isToCallHandler = false;
                 private ArrayList<ArrayList<ContactPojo>> listFriendsMain = new ArrayList<>();
+                private ArrayList<ArrayList<ContactLocalPojo>> listMain = new ArrayList<>();
 
                 protected void onPreExecute()
                 {
@@ -79,11 +78,11 @@ public class ContactsInstantSyncUtils
                 {
                     try
                     {
-                        StringBuffer sbUpdated = new StringBuffer();
+                        /*StringBuffer sbUpdated = new StringBuffer();
                         String sbDeleted = "";
+                        ArrayList<String> contactListUpdated = new ArrayList<>();*/
 
                         ArrayList<String> listIDNumber = new ArrayList<>();
-                        ArrayList<String> contactListUpdated = new ArrayList<>();
                         ArrayList<ContactLocalPojo> listContactLocal = new ArrayList<>();
 
                         HashMap<String, String> hashmapEmail = AppUtils.getEmailListFromDB(activity);
@@ -141,7 +140,7 @@ public class ContactsInstantSyncUtils
                             String birthdate = AppUtils.getValidAPIStringResponse(hashmapBirthdate.get(contactId));
 
                             ContactLocalPojo contactLocalPojo = new ContactLocalPojo();
-                            contactLocalPojo.setContactId(contactId);
+                            contactLocalPojo.setContactId(contactId + "$" + phoneNumber);
                             contactLocalPojo.setName(name);
                             contactLocalPojo.setNumber(phoneNumber);
                             contactLocalPojo.setEmail(email);
@@ -154,7 +153,7 @@ public class ContactsInstantSyncUtils
                         Log.v("get contacts from db", "stopped");
                         
                         ArrayList<ContactLocalPojo> listLocalOld = getAllContactsFromDB();
-                        ArrayList<ArrayList<ContactLocalPojo>> listMain = getAllUpdatedContacts(listContactLocal, listLocalOld);
+                        listMain = getAllUpdatedContacts(listContactLocal, listLocalOld);
                         ArrayList<ContactLocalPojo> listUpdated = new ArrayList<>();
                         ArrayList<ContactLocalPojo> listDeleted = new ArrayList<>();
                         ArrayList<ContactLocalPojo> listAdded = new ArrayList<>();
@@ -192,7 +191,14 @@ public class ContactsInstantSyncUtils
 
                         Log.v("all list size", "updated : " + listUpdated.size() + " & deleted : " + listDeleted.size() + " & added : " + listAdded.size());
 
-                        if(listAdded.size() > 0 || listUpdated.size() > 0)
+                        if(listAdded.size() > 0 || listUpdated.size() > 0 || listDeleted.size() > 0)
+                        {
+                            isToCallHandler = true;
+
+                            saveAllContactsToDB(listContactLocal);
+                        }
+
+                        /*if(listAdded.size() > 0 || listUpdated.size() > 0)
                         {
                             for(int i=0; i<listAdded.size(); i++)
                             {
@@ -256,7 +262,7 @@ public class ContactsInstantSyncUtils
                         else
                         {
                             saveAllContactsToDB(listContactLocal);
-                        }
+                        }*/
                     }
                     catch (Exception e)
                     {
@@ -498,6 +504,7 @@ public class ContactsInstantSyncUtils
 
                         if(!isContactFound)
                         {
+                            Log.v("contact matched", "to add : " + contactLocalPojo.getContactId());
                             listAdded.add(contactLocalPojo);
                         }
                     }
@@ -517,6 +524,7 @@ public class ContactsInstantSyncUtils
 
                         if(!isContactFound)
                         {
+                            Log.v("contact matched", "to delete : " + contactLocalOld.getContactId());
                             listDeleted.add(contactLocalOld);
                         }
                     }
@@ -585,12 +593,12 @@ public class ContactsInstantSyncUtils
                     isSaveContactInfoRunning = false;
 
                     try {
-                        if(isToCallHandler && MainActivity.handlerSync != null)
+                        if(isToCallHandler && ContactsActivity.handlerSync != null)
                         {
                             Message message = Message.obtain();
                             message.what = 200;
-                            message.obj = listFriendsMain;
-                            MainActivity.handlerSync.sendMessage(message);
+                            message.obj = listMain;
+                            ContactsActivity.handlerSync.sendMessage(message);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
